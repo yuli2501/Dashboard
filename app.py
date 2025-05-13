@@ -10,14 +10,14 @@ from utils.dataMilan import load_dataMilan
 # ---------------- PALETA DE COLORES ------------------
 custom_palette = [
     "#C25E4C",  # Rojo ladrillo
-    "#F7C59F",  # Durazno pastel (suavecito y cálido)
+    "#F7C59F",  # Durazno pastel 
     "#E5B25D",  # Mostaza tulipán
     "#F28C38",  # Naranja Holanda
-    "#F0E5D8",  # Cremita (deja este al final)
+    "#F0E5D8",  # Cremita
 ]
 
 # ---------------- CONFIGURACIÓN INICIAL ------------------
-st.set_page_config(layout="wide", page_title="Dashboard - Amsterdam", page_icon="🏡")
+st.set_page_config(layout="wide", page_title="Dashboard", page_icon="🏡")
 
 # ----------------- ESTILO CSS -----------------
 st.markdown("""
@@ -69,6 +69,7 @@ st.markdown("""
 # ---------------- CARGA DE DATOS -------------------------
 df, numeric_cols, text_cols, unique_categories, numeric_df = load_data()
 dfMexico, numeric_colsMex, text_colsMex, unique_categoriesMex, numericMexico = load_dataMexico()
+dfMilan, numeric_colsMilan, text_colsMilan, unique_categoriesMilan, numericMilan = load_dataMilan()
 
 # ----------------- SIDEBAR -------------------------------
 st.sidebar.title("Dashboard")
@@ -78,83 +79,6 @@ View = st.sidebar.selectbox(label="Vistas", options=[
     "Regresión lineal múltiple",
     "Regresión logística"
 ])
-
-st.markdown("""
-    <h1 style='text-align: center; color: #303030;'>
-        Amsterdam
-    </h1>
-""", unsafe_allow_html=True)
-
-# ---------------- ÍCONOS SVG ----------------
-icon_alojamientos = """<svg width="24" height="24" viewBox="0 0 24 24" fill="#C25E4C" xmlns="http://www.w3.org/2000/svg"><path d="M3 9L12 2L21 9V20C21 20.55 20.55 21 20 21H4C3.45 21 3 20.55 3 20V9Z"/><path d="M9 22H15V12H9V22Z" fill="white"/></svg>"""
-icon_precio = """<svg width="24" height="24" viewBox="0 0 64 64" fill="#E5B25D" xmlns="http://www.w3.org/2000/svg"><path d="M32 2C25.925 2 20 7.925 20 14V18H14V22H50V18H44V14C44 7.925 38.075 2 32 2ZM32 4C36.418 4 40 7.582 40 12V18H24V12C24 7.582 27.582 4 32 4ZM12 26V58C12 60.209 13.791 62 16 62H48C50.209 62 52 60.209 52 58V26H12ZM30 34H34C36.209 34 38 35.791 38 38C38 39.656 36.656 41 35 41H29V45H35C36.105 45 37 45.895 37 47C37 48.105 36.105 49 35 49H30C28.895 49 28 48.105 28 47V43H27C25.895 43 25 42.105 25 41C25 39.895 25.895 39 27 39H33C34.105 39 35 38.105 35 37C35 35.895 34.105 35 33 35H29C27.895 35 27 34.105 27 33C27 31.895 27.895 31 29 31H35C37.209 31 39 32.791 39 35C39 36.305 38.403 37.446 37.469 38.179C38.58 38.803 39.312 39.986 39.312 41.312C39.312 43.329 37.642 45 35.625 45H29.375C27.358 45 25.688 43.329 25.688 41.312C25.688 39.986 26.42 38.803 27.531 38.179C26.597 37.446 26 36.305 26 35C26 32.791 27.791 31 30 31Z"/></svg>"""
-icon_disponibilidad = """<svg width="24" height="24" viewBox="0 0 24 24" fill="#8DA47E" xmlns="http://www.w3.org/2000/svg"><path d="M19 3H18V1H16V3H8V1H6V3H5C3.9 3 3 3.9 3 5V20C3 21.11 3.9 22 5 22H19C20.1 22 21 21.11 21 20V5C21 3.9 20.1 3 19 3ZM19 20H5V10H19V20ZM7 12H9V14H7V12Z"/></svg>"""
-icon_limpieza = """<svg width="24" height="24" viewBox="0 0 24 24" fill="#F28C38" xmlns="http://www.w3.org/2000/svg"><path d="M12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.62L12 2L9.19 8.62L2 9.24L7.46 13.97L5.82 21L12 17.27Z"/></svg>"""
-
-# ---------------- KPIs ----------------
-col1, col2, col3, col4 = st.columns(4)
-
-def kpi_card(icon_svg, title, value, delta, title_color):
-    st.markdown(f"""
-        <div style='
-            background-color: #FFFFFF;
-            border: 2px solid #E5B25D;
-            border-radius: 15px;
-            padding: 8px 12px;
-            height: 120px;  /* Altura fija */
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;  /* Centramos todo */
-            gap: 6px;  /* Espacio entre título, número e icono */
-            overflow: hidden;
-        '>
-            <h3 style='
-                color: {title_color}; 
-                font-size: 15px; 
-                margin: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            '>{title}</h3>
-            <div style='
-                display: flex; 
-                align-items: center; 
-                justify-content: center;
-                margin: 0;
-                flex-wrap: nowrap;
-                max-height: 40px;  /* Control del bloque del número + ícono */
-            '>
-                {icon_svg}
-                <h1 style='
-                    margin: 0 0 0 10px; 
-                    color: #000000; 
-                    font-size: 26px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
-                '>{value}</h1>
-            </div>
-            <p style='
-                margin: 0; 
-                font-size: 13px;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            '>{delta}</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-with col1:
-    kpi_card(icon_alojamientos, "Total alojamientos", len(df), "↑ 5% más que el mes pasado", "#C25E4C")
-with col2:
-    kpi_card(icon_precio, "Precio promedio (€)", f"{df['price'].mean():.2f}", "↑ 3% aumento", "#D4A037")
-with col3:
-    kpi_card(icon_disponibilidad, "Disponibilidad 365 (días)", f"{df['availability_365'].mean():.0f}", "↔ Estable", "#8DA47E")
-with col4:
-    kpi_card(icon_limpieza, "Score limpieza promedio", f"{df['review_scores_cleanliness'].mean():.2f}", "↑ 2% mejora", "#F28C38")
 
 # ------------------ VISTA 1 ------------------------------
 if View == "Análisis univariado":
