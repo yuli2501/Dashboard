@@ -74,15 +74,20 @@ dfMilan, numeric_colsMilan, text_colsMilan, unique_categoriesMilan, numericMilan
 # ----------------- SIDEBAR -------------------------------
 st.sidebar.title("Dashboard")
 View = st.sidebar.selectbox(label="Vistas", options=[
+    "Inicio",
     "Análisis univariado",
     "Regresión lineal simple",
     "Regresión lineal múltiple",
     "Regresión logística"
 ])
 
+# ------------------ VISTA INICIO ------------------------------
+if View == "Inicio":
+    from view.vista_inicio import mostrar_informacion_paises
+    mostrar_informacion_paises()
 # ------------------ VISTA 1 ------------------------------
-if View == "Análisis univariado":
-    st.header("Análisis univariado")
+elif View == "Análisis univariado":
+    
     
     # ----------------- GRÁFICAS -----------------
     st.sidebar.subheader("Variables")
