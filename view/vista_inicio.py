@@ -1,5 +1,78 @@
 import streamlit as st
+from utils.dataAmsterdam import load_data as load_amsterdam_data
+from utils.dataMexico import load_dataMexico as load_mexico_data
+from utils.dataMilan import load_dataMilan as load_milan_data
 
+
+
+# Crear tarjetas 
+def kpi_card_metric(title, value, delta, title_color):
+    st.markdown(f"""
+        <div style='
+            background-color: #FFFFFF;
+            border: 2px solid #E5B25D;
+            border-radius: 15px;
+            padding: 10px 16px;
+            height: 100px;  
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;  
+            overflow: hidden;
+        '>
+            <div style='margin: 0; padding: 0; line-height: 1.1;'>  
+                <span style='
+                    color: {title_color}; 
+                    font-size: 20px; 
+                    margin: 0;
+                    padding: 0;
+                '>{title}</span><br>
+                <span style='
+                    color: #000000; 
+                    font-size: 25px;
+                    font-weight: bold;
+                    margin: 0;
+                    padding: 0;
+                '>{value}</span>
+            </div>
+            <p style='
+                margin: 4px 0 0 0; 
+                font-size: 13px;
+                color: #555555;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            '>{delta}</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+
+def show_metrics(df, country_name):
+    # Mostrar las métricas del dataset
+    st.subheader(f"Métricas del modelo en {country_name}")
+    
+    col1, col2, col3= st.columns(3)
+    with col1:
+        kpi_card_metric("Número total de registros", f"{df.shape[0]}", "Registros en el dataset", "#4B8C6A")
+    with col2:
+        kpi_card_metric("Número de columnas", f"{df.shape[1]}", "Columnas en el dataset", "#F28C38")
+    with col3:
+        kpi_card_metric("Vecindarios distintos", f"{df['neighbourhood'].nunique()}", "Número de vecindarios", "#8DA47E")
+    
+    # Si la columna 'price' está presente, agregar métricas relacionadas con el precio
+    if 'price' in df.columns:
+        col5, col6, col7 = st.columns(3)
+        with col5:
+            kpi_card_metric("Precio promedio por noche", f"${df['price'].mean():.2f}", "Precio promedio", "#F28C38")
+        with col6:
+            kpi_card_metric("Alojamiento más caro", f"${df['price'].max():.2f}", "Precio más alto", "#C25E4C")
+        with col7:
+            kpi_card_metric("Alojamiento más barato", f"${df['price'].min():.2f}", "Precio más bajo", "#8DA47E")
+
+
+#Mostrar informacion 
 def mostrar_informacion_paises():
     st.header("Información general de los países analizados")
     
@@ -26,6 +99,13 @@ def mostrar_informacion_paises():
 
     with col2:
         st.image("img/milan.png", width=400)
+
+    df_milan, _, _, _, _ = load_milan_data()  
+
+    tipo_de_cambio = 21.74
+    df_milan['price'] = df_milan['price'] * tipo_de_cambio  
+        
+    show_metrics(df_milan, "Milan")
         
 
     st.markdown("---")
@@ -44,6 +124,10 @@ def mostrar_informacion_paises():
     with col2:
         st.image("img/cdmx.png", width=400)
 
+
+    df_mexico, _, _, _, _ = load_mexico_data()  # Carga el dataset de México
+    show_metrics(df_mexico, "México")
+
     st.markdown("---")
 
     st.header("Ámsterdam, Países Bajos")
@@ -59,6 +143,13 @@ def mostrar_informacion_paises():
 
     with col2:
         st.image("img/amsterdam.png", width=400)
+
+    df_amsterdam, _, _, _, _ = load_amsterdam_data()  
+
+    tipo_de_cambio = 21.74
+    df_amsterdam['price'] = df_amsterdam['price'] * tipo_de_cambio  
+
+    show_metrics(df_amsterdam, "Amsterdam")
 
     st.markdown("---")
 
