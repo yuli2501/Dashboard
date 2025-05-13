@@ -3,6 +3,8 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+from utils.dataAmsterdam import load_data
+from utils.dataMexico import load_dataMexico
 
 # ---------------- PALETA DE COLORES ------------------
 custom_palette = [
@@ -23,6 +25,7 @@ st.markdown("""
     .stApp {
         background-color: #F4F0EB;
     }
+
 
     .stAppHeader {
         background-color: #F4F0EB;
@@ -60,31 +63,11 @@ st.markdown("""
         font-weight: bold !important;
     }
     </style>
+
 """, unsafe_allow_html=True)
-
-# ---------------- FUNCIÓN DE CARGA -----------------------
-@st.cache_data
-def load_data():
-    df = pd.read_csv("Amsterdam.csv")
-    df = df.drop(columns=["Unnamed: 0.1", "Unnamed: 0", "id", "scrape_id", "host_id"], errors="ignore")
-
-    # ----------------- LIMPIEZA DE VARIABLES -----------------
-    if 'host_acceptance_rate' in df.columns:
-        df['host_acceptance_rate'] = df['host_acceptance_rate'].str.replace('%', '').astype(float) 
-
-    if 'host_response_rate' in df.columns:
-        df['host_response_rate'] = df['host_response_rate'].str.replace('%', '').astype(float) 
-
-    numeric_df = df.select_dtypes(['float', 'int'])
-    numeric_cols = numeric_df.columns
-    text_df = df.select_dtypes(['object'])
-    text_cols = text_df.columns
-    unique_categories = df['host_is_superhost'].unique() if 'host_is_superhost' in df.columns else []
-
-    return df, numeric_cols, text_cols, unique_categories, numeric_df
-
 # ---------------- CARGA DE DATOS -------------------------
 df, numeric_cols, text_cols, unique_categories, numeric_df = load_data()
+dfMexico, numeric_colsMex, text_colsMex, unique_categoriesMex, numericMexico = load_dataMexico()
 
 # ----------------- SIDEBAR -------------------------------
 st.sidebar.title("Dashboard")
