@@ -5,6 +5,7 @@ import plotly.express as px
 import pandas as pd
 from utils.dataAmsterdam import load_data
 from utils.dataMexico import load_dataMexico
+from utils.dataMilan import load_dataMilan
 
 # ---------------- PALETA DE COLORES ------------------
 custom_palette = [
