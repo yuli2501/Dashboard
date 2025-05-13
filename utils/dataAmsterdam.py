@@ -13,6 +13,9 @@ def load_data():
     if 'host_response_rate' in df.columns:
         df['host_response_rate'] = df['host_response_rate'].str.replace('%', '').astype(float) 
 
+    # Eliminar espacios en los nombres de las columnas
+    df.columns = df.columns.str.strip()
+
     numeric_df = df.select_dtypes(['float', 'int'])
     numeric_cols = numeric_df.columns
     text_df = df.select_dtypes(['object'])
