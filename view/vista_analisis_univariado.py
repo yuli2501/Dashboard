@@ -37,7 +37,7 @@ def create_categoricals(df):
 
 # Función para mostrar el análisis univariado de los 4 países
 def mostrar_analisis_univariado():
-    st.header("Análisis Univariado: Comparación entre países")
+    st.header("Análisis Univariado")
     
     st.markdown("---")
 
