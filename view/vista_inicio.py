@@ -114,12 +114,17 @@ def mostrar_informacion_paises():
 
     st.header("CDMX, México")
     st.write("""
-    CDMX es uno de los destinos turísticos más populares del mundo, con una rica diversidad cultural, geográfica y gastronómica. 
-    Desde las playas de Cancún hasta la vibrante Ciudad de México, el país atrae a millones de turistas cada año. 
-    La creciente clase media y la adopción de plataformas tecnológicas como Airbnb han hecho que los alquileres a corto plazo se conviertan en una opción popular tanto para turistas nacionales como internacionales. 
-    Además, las variaciones en el costo de vida y las políticas gubernamentales afectan directamente la oferta y demanda de estos servicios. 
-    Analizar México a través de plataformas de alquiler de corto plazo ayuda a comprender las dinámicas del mercado local y cómo los cambios económicos, culturales y turísticos impactan los precios y la disponibilidad.
-    """)
+            La Ciudad de México es uno de los destinos turísticos más visitados a nivel mundial, 
+             conocida por su riqueza cultural, histórica y gastronómica. Con lugares emblemáticos
+              como el Zócalo, Xochimilco, y el Museo Frida Kahlo, la ciudad atrae a millones de 
+             turistas cada año. En los últimos años, el alquiler a corto plazo ha ganado 
+             popularidad gracias al auge de plataformas como Airbnb. 
+             Esto ha permitido que turistas nacionales e internacionales encuentren 
+             alojamiento diverso y accesible, lo que ha aumentado la oferta y demanda en distintas zonas de la ciudad. 
+             Las políticas gubernamentales y la variabilidad en el costo de vida afectan directamente los precios 
+             y la disponibilidad de estos alojamientos, haciendo que el análisis del mercado local a 
+             través de estas plataformas sea fundamental para entender las dinámicas turísticas y 
+             económicas de la ciudad. """)
 
     col1, col2, col3 = st.columns([1, 4, 1])  
 
