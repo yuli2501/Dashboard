@@ -98,7 +98,7 @@ def mostrar_informacion_paises():
     col1, col2, col3 = st.columns([1, 4, 1])  
 
     with col2:
-        st.image("img/milan.png", width=400)
+        st.image("img/milan.png", width=450)
 
     df_milan, _, _, _, _ = load_milan_data()  
 
@@ -122,7 +122,7 @@ def mostrar_informacion_paises():
     col1, col2, col3 = st.columns([1, 4, 1])  
 
     with col2:
-        st.image("img/cdmx.png", width=400)
+        st.image("img/cdmx.png", width=450)
 
 
     df_mexico, _, _, _, _ = load_mexico_data()  # Carga el dataset de México
@@ -142,7 +142,7 @@ def mostrar_informacion_paises():
     col1, col2, col3 = st.columns([1, 4, 1])  
 
     with col2:
-        st.image("img/amsterdam.png", width=400)
+        st.image("img/amsterdam.png", width=450)
 
     df_amsterdam, _, _, _, _ = load_amsterdam_data()  
 
@@ -165,7 +165,7 @@ def mostrar_informacion_paises():
     col1, col2, col3 = st.columns([1, 4, 1])  
 
     with col2:
-        st.image("img/china.png", width=400)
+        st.image("img/china.png", width=450)
 
 
     st.markdown("---")
