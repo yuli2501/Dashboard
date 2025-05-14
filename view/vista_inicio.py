@@ -2,6 +2,8 @@ import streamlit as st
 from utils.dataAmsterdam import load_data as load_amsterdam_data
 from utils.dataMexico import load_dataMexico as load_mexico_data
 from utils.dataMilan import load_dataMilan as load_milan_data
+from utils.dataHongKong import load_dataHongKong as load_hongKong_data
+
 
 
 
@@ -166,6 +168,13 @@ def mostrar_informacion_paises():
 
     with col2:
         st.image("img/china.png", width=450)
+    
 
+    df_hongKong, _, _, _, _ = load_hongKong_data() 
+
+    tipo_de_cambio = 2.49
+    df_hongKong['price'] = df_hongKong['price'] * tipo_de_cambio  
+
+    show_metrics(df_hongKong, "Hong Kong")
 
     st.markdown("---")

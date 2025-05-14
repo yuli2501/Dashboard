@@ -6,6 +6,7 @@ import numpy as np
 from utils.dataAmsterdam import load_data as load_amsterdam_data
 from utils.dataMexico import load_dataMexico as load_mexico_data
 from utils.dataMilan import load_dataMilan as load_milan_data
+from utils.dataHongKong import load_dataHongKong as load_hongKong_data
 
 # Función para crear las categorías de variables numéricas
 def create_categoricals(df):
@@ -74,11 +75,13 @@ def mostrar_analisis_univariado():
     df_amsterdam, _, _, _, _ = load_amsterdam_data()  # Carga los datos de Ámsterdam
     df_mexico, _, _, _, _ = load_mexico_data()  # Carga los datos de México
     df_milan, _, _, _, _ = load_milan_data()  # Carga los datos de Milán
+    df_hongKong, _, _, _, _ = load_hongKong_data()  # Carga los datos de Milán
 
     # Crear variables categóricas para cada país
     df_amsterdam = create_categoricals(df_amsterdam)
     df_mexico = create_categoricals(df_mexico)
     df_milan = create_categoricals(df_milan)
+    df_hongKong = create_categoricals(df_hongKong)
 
     # Paleta de colores personalizada
     custom_palette = [
@@ -92,7 +95,8 @@ def mostrar_analisis_univariado():
     # Mostrar la gráfica comparativa para cada país de manera independiente
     for country_name, df in [("Ámsterdam", df_amsterdam), 
                              ("CDMX", df_mexico), 
-                             ("Milán", df_milan)]:
+                             ("Milán", df_milan),
+                             ("Hong Kong", df_hongKong)]:
         
         # Crear un contenedor de tarjeta para el país y la gráfica
         with st.container():
