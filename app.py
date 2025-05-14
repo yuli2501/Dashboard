@@ -6,6 +6,7 @@ import pandas as pd
 from utils.dataAmsterdam import load_data
 from utils.dataMexico import load_dataMexico
 from utils.dataMilan import load_dataMilan
+from utils.dataHongKong import load_dataHongKong
 
 
 # ---------------- PALETA DE COLORES ------------------
@@ -42,7 +43,7 @@ st.markdown("""
     .stTittle{
         text-align: center;
     }
-        
+
     /* Cambiar el fondo del selectbox */
     div[data-baseweb="select"] > div {
         background-color: #F4F0EB !important;  /* Cremita */
@@ -71,6 +72,7 @@ st.markdown("""
 df, numeric_cols, text_cols, unique_categories, numeric_df = load_data()
 dfMexico, numeric_colsMex, text_colsMex, unique_categoriesMex, numericMexico = load_dataMexico()
 dfMilan, numeric_colsMilan, text_colsMilan, unique_categoriesMilan, numericMilan = load_dataMilan()
+dfHongKong, numeric_colsHongKong, text_colsHongKong, unique_categoriesHongKong, numericHongKong = load_dataHongKong()
 
 # ----------------- SIDEBAR -------------------------------
 st.sidebar.title("Dashboard")
@@ -272,7 +274,7 @@ elif View == "Regresión lineal simple":
 
     if mostrar_heatmap:
         st.subheader("Mapa de calor general")
-        
+
         # ----------------- VARIABLES SELECCIONADAS -----------------
         variables_heatmap = [
             'accommodates',
@@ -542,186 +544,158 @@ elif View == "Regresión lineal múltiple":
 
             st.plotly_chart(fig_heatmap, use_container_width=True)
 
-# ------------------ VISTA 4 ------------------------------
 elif View == "Regresión logística":
-    st.header("Regresión logística")
+    st.header("Comparativa de Modelos – Regresión Logística")
 
-    # ------------ VARIABLES DEPENDIENTES (BINARIAS) ------------
-    variables_dependientes_log = [
-        'host_is_superhost',
-        'instant_bookable',
-        'host_identity_verified',
-        'has_availability'
-    ]
-
-    # ------------ VARIABLES INDEPENDIENTES -------------------
-    variables_independientes_log = [
-        'number_of_reviews', 'review_scores_rating',
-        'review_scores_accuracy', 'review_scores_cleanliness',
-        'review_scores_checkin', 'review_scores_communication',
-        'review_scores_location', 'review_scores_value',
-        'host_response_rate', 'host_acceptance_rate',
-        'availability_365', 'availability_30', 'availability_90',
-        'host_listings_count', 'minimum_nights', 'accommodates',
-        'price', 'beds'
-    ]
-
-    # ------------ SIDEBAR -----------------
-    st.sidebar.subheader("Variables")
-    variable_dependiente = st.sidebar.selectbox("Variable dependiente (Y)", options=variables_dependientes_log)
-    variables_independientes = st.sidebar.multiselect("Variables independientes (X)", options=variables_independientes_log,  default=variables_independientes_log[:3] ) 
-
-    if not variables_independientes:
-        st.warning("⚠️ Selecciona al menos una variable independiente para continuar.")
+    # Selección de datasets para comparar
+    selected_datasets = st.sidebar.multiselect(
+        "Selecciona datasets para comparar",
+        ["México", "Amsterdam", "Milán", "Hong Kong"],
+        default=["México", "Milán", "Hong Kong"]
+    )
+    if not selected_datasets:
+        st.warning("Selecciona al menos un dataset para comparar.")
     else:
-        # ----------------- PREPARAR DATOS -----------------
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.model_selection import train_test_split
-        from sklearn.metrics import accuracy_score, precision_score, recall_score, confusion_matrix, roc_auc_score, roc_curve
-        import numpy as np
+        # Obtener solo las columnas binarias presentes en todos los datasets
+        sets = []
+        dfs = {
+            "México": dfMexico,
+            "Amsterdam": df,
+            "Milán": dfMilan,
+            "Hong Kong": dfHongKong
+        }
+        for name, dfi in dfs.items():
+            # columnas de texto que tengan exactamente 2 valores únicos
+            binary = [c for c in text_cols if c in dfi.columns and dfi[c].nunique() == 2]
+            sets.append(set(binary))
+        # Intersección: columnas binarias comunes
+        binary_cols = sorted(set.intersection(*sets))
 
-        # Limpieza de datos: eliminamos NaN
-        data = df[[variable_dependiente] + variables_independientes].dropna()
+        # Construcción de variables X numéricas
+        all_nums = set()
+        for dfi in dfs.values():
+            all_nums |= set([c for c in numeric_cols if c in dfi.columns])
+        all_numeric = sorted(all_nums)
 
-        # Transformar la variable dependiente (Sí/No a 1/0 si es texto)
-        if data[variable_dependiente].dtype == 'object':
-            data[variable_dependiente] = data[variable_dependiente].apply(lambda x: 1 if x in ['Yes', 't', 'Sí', 'si', 'TRUE', 'True'] else 0)
+        X_vars = st.sidebar.multiselect("Variables independientes (X)", options=all_numeric)
+        Y_var = st.sidebar.selectbox("Variable dependiente (Y – binaria)", options=binary_cols)
 
-        X = data[variables_independientes]
-        y = data[variable_dependiente]
+        if st.sidebar.button("Ejecutar Comparativa"):
+            from sklearn.preprocessing import LabelEncoder
+            from sklearn.linear_model import LogisticRegression
+            from sklearn.metrics import (
+                accuracy_score, precision_score, recall_score,
+                confusion_matrix, roc_curve, auc
+            )
+            import plotly.express as px
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+            metrics = []
+            for ds in selected_datasets:
+                df_ds = dfs[ds].copy()
 
-        model = LogisticRegression(max_iter=1000)
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-        y_proba = model.predict_proba(X_test)[:, 1]
+                # Validar existencia de Y_var
+                if Y_var not in df_ds.columns:
+                    st.error(f"La variable '{Y_var}' no está disponible en el dataset de {ds}.")
+                    continue
 
-        # ----------------- MATRIZ DE CONFUSIÓN -----------------
-        cm = confusion_matrix(y_test, y_pred)
-        st.subheader("Matriz de confusión")
-        st.write(pd.DataFrame(cm, columns=["Pred. Negativo", "Pred. Positivo"], index=["Real Negativo", "Real Positivo"]))
+                # Filtrar X_vars existentes en este dataset
+                X_sel = [col for col in X_vars if col in df_ds.columns]
+                if not X_sel:
+                    st.error(f"Ninguna variable X seleccionada está en {ds}.")
+                    continue
 
-        st.subheader("Heatmap de la matriz de confusión")
-        import plotly.express as px
-        fig_cm = px.imshow(cm, text_auto=True, color_continuous_scale=["#F7C59F", "#E5B25D", "#C25E4C"])
-        fig_cm.update_layout(xaxis_title="Predicción", yaxis_title="Real")
-        st.plotly_chart(fig_cm, use_container_width=True)
+                # Preprocesado
+                X = df_ds[X_sel]
+                y = df_ds[Y_var]
+                X_enc = pd.get_dummies(X, drop_first=True)
+                le = LabelEncoder()
+                y_enc = le.fit_transform(y)
 
-        # ----------------- MÉTRICAS -----------------
-        accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred)
-        recall = recall_score(y_test, y_pred)
-
-        # ----------------- FUNCIÓN MÉTRICAS-----------------
-        def kpi_card_metric(title, value, delta, title_color):
-            st.markdown(f"""
-                <div style='
-                    background-color: #FFFFFF;
-                    border: 2px solid #E5B25D;
-                    border-radius: 15px;
-                    padding: 10px 16px;
-                    height: 100px;  
-                    box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-                    text-align: center;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;  
-                    overflow: hidden;
-                '>
-                    <div style='margin: 0; padding: 0; line-height: 1.1;'>  <!-- Aquí se hace el truco -->
-                        <span style='
-                            color: {title_color}; 
-                            font-size: 20px; 
-                            margin: 0;
-                            padding: 0;
-                        '>{title}</span><br>
-                        <span style='
-                            color: #000000; 
-                            font-size: 25px;
-                            font-weight: bold;
-                            margin: 0;
-                            padding: 0;
-                        '>{value}</span>
-                    </div>
-                    <p style='
-                        margin: 4px 0 0 0; 
-                        font-size: 13px;
-                        color: #555555;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
-                        white-space: nowrap;
-                    '>{delta}</p>
-                </div>
-            """, unsafe_allow_html=True)
-
-        # ----------------- MÉTRICAS COMO KPIs -----------------
-        st.subheader("Métricas del modelo")
-
-        col1, col2, col3 = st.columns(3)
-
-        with col1:
-            kpi_card_metric("Precisión", f"{precision:.2%}", "Relación positivos predichos correctamente", "#C25E4C")
-        with col2:
-            kpi_card_metric("Exactitud", f"{accuracy:.2%}", "Proporción total de aciertos", "#F28C38")
-        with col3:
-            kpi_card_metric("Sensibilidad", f"{recall:.2%}", "Capacidad de encontrar positivos reales", "#8DA47E")
-
-        # ----------------- LINEPLOT DE MEJORA DEL MODELO -----------------
-        if len(variables_independientes) > 1:  # Solo si hay más de una variable
-            st.subheader("Evolución del modelo")
-
-            metrics_data = []
-
-            for i in range(1, len(variables_independientes) + 1):
-                selected_vars = variables_independientes[:i]
-
-                X = data[selected_vars]
-                y = data[variable_dependiente]
-
-                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
+                # Entrenamiento
                 model = LogisticRegression(max_iter=1000)
-                model.fit(X_train, y_train)
-                y_pred = model.predict(X_test)
+                model.fit(X_enc, y_enc)
+                y_pred = model.predict(X_enc)
+                y_prob = model.predict_proba(X_enc)[:, 1]
 
-                acc = accuracy_score(y_test, y_pred)
-                prec = precision_score(y_test, y_pred)
-                rec = recall_score(y_test, y_pred)
+                # Métricas
+                acc = accuracy_score(y_enc, y_pred)
+                prec = precision_score(y_enc, y_pred, zero_division=0)
+                rec = recall_score(y_enc, y_pred, zero_division=0)
+                cm = confusion_matrix(y_enc, y_pred)
+                fpr, tpr, _ = roc_curve(y_enc, y_prob)
+                roc_auc = auc(fpr, tpr)
 
-                metrics_data.append({
-                    'Variables usadas': ', '.join(selected_vars),
-                    'Número de variables': i,
-                    'Precisión': prec,
-                    'Exactitud': acc,
-                    'Sensibilidad': rec
+                metrics.append({
+                    "Dataset": ds,
+                    "Exactitud": acc,
+                    "Precisión": prec,
+                    "Sensibilidad": rec,
+                    "Confusion": cm,
+                    "FPR": fpr,
+                    "TPR": tpr,
+                    "AUC": roc_auc,
+                    "Clases": le.classes_
                 })
 
-            metrics_df = pd.DataFrame(metrics_data)
+            # Helper de KPI cards
+            def kpi_card(title, value, subtitle, color):
+                st.markdown(f"""
+                    <div style=''
+                        background-color: #FFFFFF;
+                        border: 2px solid {color};
+                        border-radius: 15px;
+                        padding: 8px 12px;
+                        text-align: center;
+                    ''>
+                        <h4 style='color:{color}; margin:0;'>{title}</h4>
+                        <p style='margin:4px 0; font-size:20px;'>{value}</p>
+                        <small style='color:#555'>{subtitle}</small>
+                    </div>
+                """, unsafe_allow_html=True)
 
-            # Lineplot de las métricas
-            fig_metrics = px.line(
-                metrics_df,
-                x='Número de variables',
-                y=['Precisión', 'Exactitud', 'Sensibilidad'],
-                markers=True,
-                labels={"value": "Métrica", "variable": "Tipo de métrica", "Número de variables": "Número de variables"},
-                color_discrete_sequence=custom_palette
+            # Mostrar KPI cards
+            cols = st.columns(len(metrics))
+            for col, m in zip(cols, metrics):
+                with col:
+                    kpi_card(
+                        title=m["Dataset"],
+                        value=f"Acc: {m['Exactitud']:.2%}",
+                        subtitle=f"Prec: {m['Precisión']:.2%} | Sen: {m['Sensibilidad']:.2%}",
+                        color=custom_palette[0]
+                    )
+
+            # Mostrar matriz de confusión y heatmap por dataset
+            for m in metrics:
+                st.markdown(f"---\n### {m['Dataset']}")
+
+                st.subheader("Matriz de Confusión")
+                cm_df = pd.DataFrame(m["Confusion"], index=m["Clases"], columns=m["Clases"])
+                st.table(cm_df)
+
+                st.subheader("Heatmap – Matriz de Confusión")
+                fig_cm = px.imshow(
+                    m["Confusion"],
+                    text_auto=True,
+                    labels=dict(x="Predicción", y="Real", color="Cantidad"),
+                    x=m["Clases"], y=m["Clases"],
+                    color_continuous_scale=custom_palette
+                )
+                fig_cm.update_layout(margin=dict(l=40, r=40, t=40, b=40), paper_bgcolor="#F4F0EB")
+                st.plotly_chart(fig_cm, use_container_width=True)
+
+            # Curvas ROC comparadas
+            st.markdown("---\n## Curvas ROC comparadas")
+            fig_roc = px.line(
+                x=[0, 1], y=[0, 1],
+                line_dash_sequence=["dash"],
+                labels={"x": "FPR", "y": "TPR"},
+                title="Línea de azar"
             )
-
-            fig_metrics.update_layout(
-                legend_title="Métrica",
-                xaxis=dict(tickmode='linear', dtick=1)
-            )
-
-            st.plotly_chart(fig_metrics, use_container_width=True)
-
-        # ----------------- TABLA DE MÉTRICAS POR VARIABLES -----------------
-        st.subheader("Tabla de la evolución del modelo")
-
-        # Quitamos la columna 'Número de variables'
-        metrics_df_tabla = metrics_df[['Variables usadas', 'Precisión', 'Exactitud', 'Sensibilidad']]
-
-        # Mostramos la tabla
-        st.dataframe(metrics_df_tabla)
+            for m in metrics:
+                fig_roc.add_scatter(
+                    x=m["FPR"], y=m["TPR"],
+                    mode="lines",
+                    name=f"{m['Dataset']} (AUC={m['AUC']:.3f})"
+                )
+            fig_roc.update_layout(xaxis=dict(range=[0, 1]), yaxis=dict(range=[0, 1]), paper_bgcolor="#F4F0EB")
+            st.plotly_chart(fig_roc, use_container_width=True)
